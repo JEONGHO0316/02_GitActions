@@ -1,0 +1,15 @@
+# was-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: petclinic-was-service
+  namespace: petclinic
+spec:
+  type: ClusterIP
+  selector:
+    app: petclinic-was
+    tier: backend
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080

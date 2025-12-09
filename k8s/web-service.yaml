@@ -1,0 +1,18 @@
+# web-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: petclinic-web-service
+  namespace: petclinic
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "alb"  # 또는 ALB 사용
+spec:
+  type: ClusterIP # ingress 사용 하니까 ClusterIP로 변경
+  selector:
+    app: petclinic-web
+    tier: frontend
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+    name: http
