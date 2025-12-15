@@ -9,8 +9,8 @@ permissions:
 
 env:
   AWS_REGION: ap-northeast-2
-  # 👇 [수정 1] 아까 만든 ECR 리포지토리 이름으로 통일 (새로 만들었다면 그 이름으로)
-  ECR_REPOSITORY: gitactions 
+  #  아까 만든 ECR 리포지토리 이름으로 통일 
+  ECR_REPOSITORY: gitactions
   ECR_REGISTRY: 639242342449.dkr.ecr.ap-northeast-2.amazonaws.com
   IMAGE_TAG: v${{ github.run_number }}
 
@@ -21,7 +21,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # 👇 [수정 2] Java 17 세팅 추가 (빌드 안정성 확보)
+    # Java 17 세팅 추가 (빌드 안정성 확보)
     - name: Set up JDK 17
       uses: actions/setup-java@v3
       with:
@@ -36,16 +36,16 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
     - uses: aws-actions/amazon-ecr-login@v2
-    
+
     # 1. 빌드 및 ECR 업로드
     - name: Build, tag, and push image to Amazon ECR
       run: |
         chmod +x mvnw
         ./mvnw clean package -DskipTests
-        
+
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        
+
         # latest 태그 업데이트
         docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
@@ -54,10 +54,10 @@ jobs:
     - name: Update Deployment YAML with new image tag
       run: |
         WAS_YAML_PATH="k8s/was-deployment.yaml"
-        
-        # 👇 [수정 3] sed 패턴 변경: 기존 이름이 뭐든 간에 ECR 주소 라인을 통째로 교체 (가장 안전)
+
+        # sed 패턴 변경: 기존 이름이 뭐든 간에 ECR 주소 라인을 통째로 교체
         sed -i "s|image: .*dkr.ecr.*|image: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG|g" $WAS_YAML_PATH
-        
+
         # 확인
         cat $WAS_YAML_PATH
 
@@ -66,4 +66,4 @@ jobs:
       uses: EndBug/add-and-commit@v9
       with:
         message: 'GitOps: Deploy new image version ${{ env.IMAGE_TAG }}'
-        add: 'k8s/was-deployment.yaml' # 👈 (원래 코드에 따옴표가 빠져있어서 채워드렸습니다)
+        add: 'k8s/was-deployment.yaml' 
